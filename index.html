@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veto-Care API Route Tester</title>
+  <style>
+    :root {
+      --bg: #f7f4ef;
+      --panel: #fffdfa;
+      --panel-border: #e7dfd1;
+      --ink: #1e2a2f;
+      --muted: #6c757d;
+      --primary: #1f6f8b;
+      --primary-strong: #165267;
+      --accent: #d9a441;
+      --ok-bg: #e7f6ec;
+      --ok-border: #8bc8a0;
+      --err-bg: #fde9e9;
+      --err-border: #e4a3a3;
+      --mono: "Consolas", "Menlo", "Monaco", monospace;
+      --sans: "Segoe UI", "Trebuchet MS", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% -10%, #f7e7c1 0%, transparent 40%),
+        radial-gradient(circle at 95% 105%, #d7ecef 0%, transparent 42%),
+        var(--bg);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 8px 20px rgba(38, 51, 58, 0.06);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 1.08rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @media (max-width: 800px) {
+      .grid.two,
+      .grid.three {
+        grid-template-columns: 1fr;
+      }
+
+      body {
+        padding: 12px;
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    input,
+    textarea,
+    button {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #cfd7db;
+      padding: 10px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+      font-family: var(--mono);
+      font-size: 0.83rem;
+      background: #fbfcff;
+    }
+
+    button {
+      border: none;
+      background: var(--primary);
+      color: #ffffff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+
+    button:hover {
+      background: var(--primary-strong);
+      transform: translateY(-1px);
+    }
+
+    .btn-alt {
+      background: var(--accent);
+      color: #27231a;
+    }
+
+    .btn-alt:hover {
+      background: #bf8c2f;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .row > button {
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .token {
+      background: #f6f8f9;
+      border: 1px dashed #bec9ce;
+      border-radius: 10px;
+      padding: 8px;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      word-break: break-all;
+      min-height: 54px;
+    }
+
+    pre {
+      margin: 0;
+      background: #f6f8f9;
+      border: 1px solid #d7dfe3;
+      border-radius: 10px;
+      padding: 10px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      max-height: 280px;
+      overflow: auto;
+    }
+
+    .result {
+      border-radius: 10px;
+      padding: 10px;
+      border: 1px solid #d7dfe3;
+      background: #f6f8f9;
+    }
+
+    .result.ok {
+      background: var(--ok-bg);
+      border-color: var(--ok-border);
+    }
+
+    .result.err {
+      background: var(--err-bg);
+      border-color: var(--err-border);
+    }
+
+    code.inline {
+      background: #f0f3f5;
+      border: 1px solid #dce3e8;
+      border-radius: 6px;
+      padding: 1px 5px;
+      font-family: var(--mono);
+      font-size: 0.83rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="panel">
+      <h1>Veto-Care API Route Tester</h1>
+      <p class="subtitle">Single-page tester for all current backend routes under <code class="inline">/api</code>.</p>
+      <div class="grid two" style="margin-top:10px;">
+        <div>
+          <label for="apiBase">API Base URL</label>
+          <input id="apiBase" type="text" value="http://localhost:3000/api">
+        </div>
+        <div>
+          <label>Current Access Token</label>
+          <div id="tokenBox" class="token">No token yet</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Auth Routes</h2>
+      <div class="grid two">
+        <div>
+          <label for="authEmail">Email</label>
+          <input id="authEmail" type="email" placeholder="owner@example.com">
+        </div>
+        <div>
+          <label for="authPassword">Password</label>
+          <input id="authPassword" type="password" placeholder="min 6 chars">
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button onclick="register()">POST /auth/register</button>
+        <button class="btn-alt" onclick="signupAlias()">POST /auth/signup</button>
+        <button onclick="login()">POST /auth/login</button>
+      </div>
+      <div class="grid two" style="margin-top:10px;">
+        <div>
+          <label for="profileBody">PUT /auth/profile body (JSON)</label>
+          <textarea id="profileBody">{
+  "full_name": "John Doe",
+  "phone": "+123456789",
+  "city": "Sousse"
+}</textarea>
+        </div>
+        <div>
+          <label>Auth Route Response</label>
+          <pre id="authResult">Waiting for request...</pre>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button onclick="updateProfile()">PUT /auth/profile</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Veterinarians Routes</h2>
+      <div class="grid three">
+        <div>
+          <label for="vetName">Name</label>
+          <input id="vetName" type="text" placeholder="Dr. Nadia">
+        </div>
+        <div>
+          <label for="vetSpecialization">Specialization</label>
+          <input id="vetSpecialization" type="text" placeholder="Surgery">
+        </div>
+        <div>
+          <label for="vetEmail">Email</label>
+          <input id="vetEmail" type="email" placeholder="nadia@clinic.com">
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button onclick="getVets()">GET /vets</button>
+        <button onclick="createVet()">POST /vets</button>
+      </div>
+      <pre id="vetsResult" style="margin-top:10px;">Waiting for request...</pre>
+    </section>
+
+    <section class="panel">
+      <h2>Appointments Routes</h2>
+      <div class="grid two">
+        <div>
+          <label for="appointmentBody">POST /appointments body (JSON)</label>
+          <textarea id="appointmentBody">{
+  "vet_id": 1,
+  "date_rdv": "2026-05-20T09:30:00",
+  "file_path": "files/demo-health-record.pdf"
+}</textarea>
+        </div>
+        <div>
+          <label for="cancelId">Appointment ID for cancel</label>
+          <input id="cancelId" type="text" placeholder="12">
+          <div class="row" style="margin-top:10px;">
+            <button onclick="createAppointment()">POST /appointments</button>
+            <button onclick="listAppointments()">GET /appointments</button>
+          </div>
+          <div class="row" style="margin-top:8px;">
+            <button class="btn-alt" onclick="listMyAppointments()">GET /appointments/my-appointments</button>
+            <button class="btn-alt" onclick="cancelAppointment()">PUT /appointments/:id/cancel</button>
+          </div>
+        </div>
+      </div>
+      <pre id="appointmentsResult" style="margin-top:10px;">Waiting for request...</pre>
+    </section>
+
+    <section class="panel">
+      <h2>Upload Route</h2>
+      <div class="grid two">
+        <div>
+          <label for="uploadFile">Choose file</label>
+          <input id="uploadFile" type="file">
+        </div>
+        <div>
+          <label>Upload endpoint</label>
+          <div class="result">POST <code class="inline">/upload</code> (multipart/form-data with field <code class="inline">file</code>)</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button onclick="uploadFile()">POST /upload</button>
+      </div>
+      <pre id="uploadResult" style="margin-top:10px;">Waiting for request...</pre>
+    </section>
+
+    <section class="panel">
+      <h2>Health Check</h2>
+      <div class="row">
+        <button onclick="pingRoot()">GET /</button>
+      </div>
+      <pre id="rootResult" style="margin-top:10px;">Waiting for request...</pre>
+    </section>
+  </div>
+
+  <script>
+    let authToken = '';
+
+    function apiBase() {
+      return document.getElementById('apiBase').value.trim().replace(/\/$/, '');
+    }
+
+    function setToken(token) {
+      authToken = token || '';
+      document.getElementById('tokenBox').textContent = authToken || 'No token yet';
+    }
+
+    function parseJsonInput(text, fallback) {
+      try {
+        return { value: JSON.parse(text), error: null };
+      } catch (err) {
+        return { value: fallback, error: err.message };
+      }
+    }
+
+    async function request(path, options = {}, needsAuth = false) {
+      const headers = options.headers ? { ...options.headers } : {};
+      if (needsAuth) {
+        if (!authToken) {
+          throw new Error('No auth token. Login first.');
+        }
+        headers.Authorization = `Bearer ${authToken}`;
+      }
+
+      const response = await fetch(`${apiBase()}${path}`, {
+        ...options,
+        headers
+      });
+
+      const raw = await response.text();
+      let payload = raw;
+
+      try {
+        payload = raw ? JSON.parse(raw) : null;
+      } catch (_) {
+      }
+
+      return { ok: response.ok, status: response.status, payload };
+    }
+
+    function printResult(elementId, data) {
+      document.getElementById(elementId).textContent = JSON.stringify(data, null, 2);
+    }
+
+    function printError(elementId, error) {
+      document.getElementById(elementId).textContent = JSON.stringify({ error: error.message || String(error) }, null, 2);
+    }
+
+    async function register() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+
+      try {
+        const result = await request('/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        printResult('authResult', result);
+      } catch (error) {
+        printError('authResult', error);
+      }
+    }
+
+    async function signupAlias() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+
+      try {
+        const result = await request('/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        printResult('authResult', result);
+      } catch (error) {
+        printError('authResult', error);
+      }
+    }
+
+    async function login() {
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+
+      try {
+        const result = await request('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        if (result.ok && result.payload && result.payload.session && result.payload.session.access_token) {
+          setToken(result.payload.session.access_token);
+        }
+        printResult('authResult', result);
+      } catch (error) {
+        printError('authResult', error);
+      }
+    }
+
+    async function updateProfile() {
+      const parsed = parseJsonInput(document.getElementById('profileBody').value, null);
+      if (parsed.error) {
+        return printError('authResult', new Error(`Invalid JSON for profile body: ${parsed.error}`));
+      }
+
+      try {
+        const result = await request('/auth/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsed.value)
+        }, true);
+        printResult('authResult', result);
+      } catch (error) {
+        printError('authResult', error);
+      }
+    }
+
+    async function getVets() {
+      try {
+        const result = await request('/vets');
+        printResult('vetsResult', result);
+      } catch (error) {
+        printError('vetsResult', error);
+      }
+    }
+
+    async function createVet() {
+      const body = {
+        name: document.getElementById('vetName').value.trim(),
+        specialization: document.getElementById('vetSpecialization').value.trim(),
+        email: document.getElementById('vetEmail').value.trim()
+      };
+
+      try {
+        const result = await request('/vets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        }, true);
+        printResult('vetsResult', result);
+      } catch (error) {
+        printError('vetsResult', error);
+      }
+    }
+
+    async function createAppointment() {
+      const parsed = parseJsonInput(document.getElementById('appointmentBody').value, null);
+      if (parsed.error) {
+        return printError('appointmentsResult', new Error(`Invalid JSON for appointment body: ${parsed.error}`));
+      }
+
+      try {
+        const result = await request('/appointments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsed.value)
+        }, true);
+        printResult('appointmentsResult', result);
+      } catch (error) {
+        printError('appointmentsResult', error);
+      }
+    }
+
+    async function listAppointments() {
+      try {
+        const result = await request('/appointments', {}, true);
+        printResult('appointmentsResult', result);
+      } catch (error) {
+        printError('appointmentsResult', error);
+      }
+    }
+
+    async function listMyAppointments() {
+      try {
+        const result = await request('/appointments/my-appointments', {}, true);
+        printResult('appointmentsResult', result);
+      } catch (error) {
+        printError('appointmentsResult', error);
+      }
+    }
+
+    async function cancelAppointment() {
+      const id = document.getElementById('cancelId').value.trim();
+      if (!id) {
+        return printError('appointmentsResult', new Error('Provide appointment id first'));
+      }
+
+      try {
+        const result = await request(`/appointments/${encodeURIComponent(id)}/cancel`, {
+          method: 'PUT'
+        }, true);
+        printResult('appointmentsResult', result);
+      } catch (error) {
+        printError('appointmentsResult', error);
+      }
+    }
+
+    async function uploadFile() {
+      const fileInput = document.getElementById('uploadFile');
+      if (!fileInput.files || !fileInput.files.length) {
+        return printError('uploadResult', new Error('Select a file first'));
+      }
+
+      const form = new FormData();
+      form.append('file', fileInput.files[0]);
+
+      try {
+        const result = await request('/upload', {
+          method: 'POST',
+          body: form
+        }, true);
+        printResult('uploadResult', result);
+      } catch (error) {
+        printError('uploadResult', error);
+      }
+    }
+
+    async function pingRoot() {
+      const base = apiBase().replace(/\/api$/, '');
+      try {
+        const response = await fetch(base + '/');
+        const text = await response.text();
+        printResult('rootResult', {
+          ok: response.ok,
+          status: response.status,
+          payload: text
+        });
+      } catch (error) {
+        printError('rootResult', error);
+      }
+    }
+  </script>
+</body>
+</html>

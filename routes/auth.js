@@ -1,0 +1,79 @@
+const express = require('express');
+const router = express.Router();
+const supabase = require('../supabaseClient');
+const authenticate = require('../middleware/auth');
+
+const registerHandler = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password
+  });
+
+  if (error) {
+    console.error('Signup Error:', error.message);
+    return res.status(400).json({ message: error.message });
+  }
+
+  res.json(data);
+};
+
+router.post('/register', registerHandler);
+router.post('/signup', registerHandler);
+
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    console.error('Login Error:', error.message);
+    return res.status(400).json({ message: error.message });
+  }
+
+  res.json(data);
+});
+
+router.put('/profile', authenticate, async (req, res) => {
+  const allowedFields = [
+    'full_name',
+    'phone',
+    'avatar_url',
+    'bio',
+    'pet_name',
+    'pet_type',
+    'pet_breed',
+    'city'
+  ];
+
+  const payload = { id: req.user.id };
+
+  for (const field of allowedFields) {
+    if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+      payload[field] = req.body[field];
+    }
+  }
+
+  if (Object.keys(payload).length === 1) {
+    return res.status(400).json({ message: 'No profile fields provided' });
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .upsert(payload, { onConflict: 'id' })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Profile Update Error:', error.message);
+    return res.status(400).json({ message: error.message });
+  }
+
+  res.json(data);
+});
+
+module.exports = router;
