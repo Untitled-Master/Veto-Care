@@ -33,13 +33,31 @@ router.get('/my-appointments', authenticate, async (req, res) => {
 });
 
 router.get('/', authenticate, async (req, res) => {
-  const { data, error } = await supabase
-    .from('rendez_vous')
-    .select('*, veterinaires(name)')
-    .eq('maitre_id', req.user.id);
+  const { role } = req.query;
 
-  if (error) return res.status(400).json({ message: error.message });
-  res.json(data);
+  let query = supabase
+    .from('rendez_vous')
+    .select('*, veterinaires(name, specialization, email)');
+
+  if (role === 'vet') {
+    const { data: vet, error: vetError } = await supabase
+      .from('veterinaires')
+      .select('id')
+      .eq('email', req.user.email)
+      .maybeSingle();
+
+    if (vetError) return res.status(400).json({ message: vetError.message });
+    if (!vet) return res.status(403).json({ message: 'Vet profile not found for this account' });
+
+    query = query.eq('veterinaire_id', vet.id);
+  } else {
+    query = query.eq('maitre_id', req.user.id);
+  }
+
+  const result = await query;
+
+  if (result.error) return res.status(400).json({ message: result.error.message });
+  res.json(result.data);
 });
 
 router.put('/:id/cancel', authenticate, async (req, res) => {
