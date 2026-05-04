@@ -6,14 +6,14 @@ async function sendEmail(to, subject, html) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      api_key: import.meta.env.VITE_OUTMAIL_API_KEY,
+      api_key: import.meta.env.VITE_OUTMAIL_KEY,
       google_token: {
-        access_token: import.meta.env.VITE_GOOGLE_ACCESS_TOKEN,
-        refresh_token: import.meta.env.VITE_GOOGLE_REFRESH_TOKEN,
-        scope: "https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly",
-        token_type: "Bearer",
-        expiry_date: 1772213278139
-      },
+        "access_token": import.meta.env.VITE_OUTMAIL_TOKEN_ACCESS,
+        "refresh_token": import.meta.env.VITE_OUTMAIL_TOKEN_REFRESH,
+        "scope": "https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly",
+        "token_type": "Bearer",
+        "expiry_date": 1777927074834
+      }, 
       to,
       subject,
       html

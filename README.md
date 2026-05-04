@@ -368,6 +368,11 @@ async function sendEmail(to, subject, html) {
    ```
    VITE_SUPABASE_URL=your_supabase_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   VITE_SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   VITE_OUTMAIL_KEY={"key": "your_outmail_api_key"}
+   VITE_OUTMAIL_TOKEN_ACCESS=your_outmail_google_token_access
+   VITE_OUTMAIL_TOKEN_REFRESH=your_outmail_google_token_refresh
+    
    ```
 
 4. Run database migrations in Supabase SQL editor
