@@ -5,10 +5,5 @@
       "dest": "/",
       "status": 200
     }
-  ],
-  "functions": {
-    "api/send-email.js": {
-      "runtime": "nodejs:18"
-    }
-  }
+  ]
 }
