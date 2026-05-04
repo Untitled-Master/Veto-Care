@@ -1,6 +1,6 @@
 # VetX
 
-![VetX Logo](public/logo.png)
+![VetX Logo](public/moke.png)
 
 ## Problem Statement
 
