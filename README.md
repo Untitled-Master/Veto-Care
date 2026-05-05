@@ -188,7 +188,7 @@ vetSi/
 ```
 
 ### Database Schema
-![Database Schema](screenshots/supabase-schema-cctvqztwndgbznykttqj (3).png)
+![Database Schema](screenshots/db.png)
 #### Tables
 - **`utilisateurs`** - Pet owner profiles
   - `id` (UUID, references auth.users)
